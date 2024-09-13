@@ -10,7 +10,7 @@ editor_options:
 
 # 1) Short review
 
--   Creating a chunk of code
+-   Creating a chunk of code (ctrl + alt + i)
 -   Loading packages (tidyverse and readxl)
 -   Creating an object
 -   Commenting in .Rmd: in-chunk or out-of-chunk
@@ -29,10 +29,9 @@ library(readxl)
 
 ```{r}
 # Load weather data
-df_weather <- read.csv("../Data/nfix_weather.csv") %>% select(-X)
-
+df_weather <- read.csv("../Data/nfix_weather.csv") %>% dplyr::select(-X) # Select (-X) Borra la primer columna que indica el número de fila
 # Load biomass data
-df_biomass <- read.csv("../Data/nfix_biomass.csv") %>% select(-X) 
+df_biomass <- read.csv("../Data/nfix_biomass.csv") %>% dplyr::select(-X) 
 
 # Load yield data
 df_yield <- read.csv("../Data/nfix_yield.csv") %>% select(-X)
@@ -49,14 +48,14 @@ str(df_yield)
 ### SELECT
 
 Helper functions:
-- starts_with()
-- ends_with()
+- starts_with() Me muestra las columnas que empiecen con lo que le pida ".." y concatenados si son mas de una
+- ends_with()   ""   ""     ""    ""    ""  terminan ""  ""  ""  "  ""
 - contains()
 - matches()
 - num_range()
-- grepl()
-- between()
-- across()
+- grepl() Busca y combina patrones dentro de un elemento que difieren en el formato o carácter de resultados.
+- between() Detecta los valores que estan en un rango especificado
+- across() Me facilita realizar la misma transformación a múltiples columnas
 
 ```{r}
 # Select specific columns from the data
@@ -72,33 +71,33 @@ df_weather %>%
   select(ends_with("A"))
 ```
 
-### ARRANGE
+### ARRANGE me ordena los datos de la columna que le indique de menor a mayor
 
 ```{r}
 # Reorder the data frame rows according to the lowest-to-highest yield
-df_yield %>% arrange(Yield_mgha)
+df_yield %>% dplyr::arrange(Yield_mgha)
 
 # Reorder the data frame rows according to the highest-to-lowest yield
 df_yield %>% 
   arrange(desc(Yield_mgha))
 ```
 
-### RENAME
+### RENAME me permite cambiar el nombre de las columnas primero el nombre que quiero = la forma q estaba
 
 ```{r}
 # Change column name
 df_yield %>% 
   rename(yield = Yield_mgha)
 
-# To upper or lower case (rename_with(tolower/touuper))
+# To upper or lower case (rename_with(tolower/touuper)) Pasa todas las columnas a lower case "minúscula"
 df_yield %>% 
   rename_with(tolower)
 
-df_yield %>% 
+df_yield %>%  #Pasa todas las columnas a upper case "mayúscula"
   rename_with(toupper)
 ```
 
-### FILTER
+### FILTER permite filtrar dentro de un objeto o df la columna que le indique
 
 ```{r}
 # Filter rows
@@ -120,38 +119,44 @@ df_weather %>% filter(Site %in% c("KS1","KS2"))
 # Filter rows where Yield_mgha is not NA (!is.na())
 df_yield %>% filter(is.na(Yield_mgha))
 
-# Filter rows where Site contains "KS" (grepl)
+# Filter rows where Site contains "KS" (grepl) me filtra todos los sitios a excepción de los que tienen KS
 df_weather %>% filter(!grepl("KS", Site))
 ```
 
-### MUTATE
+### MUTATE me permite crear nuevas columnas en el data frame
 
 ```{r}
 # Create a new column with total PP
-df_weather %>% mutate(PPtotal = PP_A + PP_B + PP_C)
+df_weather %>% mutate(PPtotal = PP_A + PP_B + PP_C) #Crea la columna PPtotal con la suma que le pedí y por
+#default lo manda al final del data drame
 
 # Create a new column with total PP after a given column
 df_weather %>% mutate(PPtotal = PP_A + PP_B + PP_C, .after = "season")
+df_weather %>% mutate(PPtotal = PP_A + PP_B + PP_C, .before = "Dur_A") #de esta manera le indico donde quiero la nueva columna
 
 # Change type of data from character to factor (`mutate(across(c()))`)
 df_biomass %>% mutate(across(c(Site, Stage, Block, Treatment), as.factor))
 ```
 
-### ROUND
+### ROUND 
 
 ```{r}
 # Round yield values
 df_yield %>% mutate(across(Yield_mgha,round,digits=2))
 ```
 
-### SUMMARISE
+### SUMMARISE me aporta datos resumen del data frame como media, mediana, desvio estandar
 
 ```{r}
 # Create a summary data frame with mean yield (na.rm=T)
 df_yield %>% summarise(mean = mean(Yield_mgha))
+df_yield %>% summarise(sd = sd(Yield_mgha))
+df_yield %>% summarise(median = median(Yield_mgha))
+
+summary(df_yield)
 ```
 
-### GROUP_BY
+### GROUP_BY agrupa una o mas variables
 
 ```{r}
 # Group by Treatment and summarize mean yield
@@ -165,7 +170,7 @@ df_yield %>%
   summarise(mean = mean(Yield_mgha, na.rm = TRUE))
 ```
 
-### SEPARATE
+### SEPARATE separa elementos que estan en la misma columna en nuevas columnas
 
 ```{r}
 # Separate Site into Location and Year
@@ -173,14 +178,14 @@ df_yield %>% separate(Site, c("Location","Season"), remove = F, sep = 3)
 df_yield %>% separate(Site, c("Location","Season"), remove = F, sep = "_")
 ```
 
-### UNITE
+### UNITE combina varias columnas a una sola especificada con el nombre
 
 ```{r}
 # Create ID column (remove or not previous)
 df_biomass %>% unite(ID, Site, Stage, Block, Treatment, sep = "_")
 ```
 
-### DISTINCT
+### DISTINCT reconoce cuantas cosas distintas hay en una columna
 
 ```{r}
 # Get distinct Sites (distinct())
@@ -212,6 +217,10 @@ df_yield %>%
   mutate(yield_class = case_when(Yield_mgha < 3.5 ~ "low",
                                  Yield_mgha >= 3.5 & Yield_mgha < 5 ~ "medium",
                                  Yield_mgha >= 5 ~ "high"))
+df_yield %>% 
+  mutate(yield_class = case_when(Yield_mgha < 3.5 ~ "low",
+                                 Yield_mgha >= 3.5 & Yield_mgha < 5 ~ "medium",
+                                 Yield_mgha >= 5 ~ "high"), .after = "Block")
 
 # Change only "Check" to "Control" (T~)
 df_biomass %>% 
@@ -239,14 +248,14 @@ df_yield <- df_yield %>%
 df_yield %>%  
   filter(Treatment == "Check") %>% 
   group_by(Site) %>%
-  mutate(mean_Yield_mgha = median(Yield_mgha)) %>% 
+  mutate(mean_Yield_mgha = mean(Yield_mgha)) %>% 
   summarise(mean_Yield_mgha) %>% 
   unique() %>% 
   separate(Site, into = c("Location", "Season"), sep = "_") %>% 
   rename(meanY = mean_Yield_mgha)
 ```
 
-### STR_REPLACE
+### STR_REPLACE 
 
 ```{r}
 # Replace a string in the Site column
