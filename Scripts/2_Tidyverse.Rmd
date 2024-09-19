@@ -39,6 +39,8 @@ df_yield <- read.csv("../Data/nfix_yield.csv") %>% select(-X)
 str(df_weather)
 str(df_biomass)
 str(df_yield)
+
+view(df_biomass)
 ```
 
 # 4) Tidyverse
@@ -64,11 +66,14 @@ df_weather %>%
 
 # Select columns whose names start with a given string
 df_weather %>% 
-  select(starts_with(c("Tmean","PP")))
+  select(starts_with(c("PP","Tmean")))
 
 # Select columns whose names end with a specific string.
 df_weather %>% 
   select(ends_with("A"))
+
+df_weather %>% 
+  
 ```
 
 ### ARRANGE me ordena los datos de la columna que le indique de menor a mayor
