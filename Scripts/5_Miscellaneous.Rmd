@@ -47,7 +47,7 @@ ggplot(kansas) +
 # Load Kansas counties
 ks_counties <- st_as_sf(maps::map("county", "kansas", plot = FALSE, fill = TRUE))
 
-df_points <- readRDS("Data/coordinates_KScounty.RDS")
+df_points <- readRDS("../Data/coordinates_KScounty.RDS")
 
 # Plot the counties and the random points
 ggplot() +
@@ -123,7 +123,7 @@ summary(df_weather)
 # Calculate mean temperature and precipitation
 df_summary <- df_weather %>%
   group_by(id, latitude, longitude) %>%
-  summarise(total_precip = sum(prcp_mm_day, na.rm = TRUE)) %>%
+  mutate(total_precip = sum(prcp_mm_day, na.rm = TRUE)) %>%
   ungroup()
 ```
 
